@@ -13,13 +13,6 @@ steps:
       set -euo pipefail
       imageFullName=$(containerRegistry)/${{ parameters.imageName }}
       tagImage=$(configVersion)
-      docker load -i $(Build.ArtifactStagingDirectory)/docker/${{ parameters.imageName }}-$(configVersion).tar.gz
-      docker tag ${{ parameters.imageName }}:$(configVersion) ${imageFullName}:$(configVersion)
-    displayName: 'Cargar imagen Docker desde tar.gz y etiquetar'
-  - script: |
-      set -euo pipefail
-      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
-      tagImage=$(configVersion)
       docker tag ${{ parameters.imageName }}:$(configVersion) ${imageFullName}:latest
       docker tag ${{ parameters.imageName }}:$(configVersion) ${imageFullName}:${tagImage}
       docker push ${imageFullName}:latest
