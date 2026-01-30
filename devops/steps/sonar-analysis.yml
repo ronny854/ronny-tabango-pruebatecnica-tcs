@@ -1,0 +1,28 @@
+parameters:
+  - name: sonarProjectName
+    type: string
+    default: 'DevOps Microservice'
+
+steps:
+  - task: SonarCloudPrepare@3
+    displayName: 'Preparar análisis SonarCloud'
+    inputs:
+      SonarCloud: $(sonarServiceConnection)
+      organization: $(sonarOrganization)
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: $(sonarProjectKey)
+      cliProjectName: ${{ parameters.sonarProjectName }}
+      cliSources: 'api_python'
+      extraProperties: |
+        sonar.python.coverage.reportPaths=$(Common.TestResultsDirectory)/coverage.xml
+        sonar.python.xunit.reportPath=$(Common.TestResultsDirectory)/test-results.xml
+        sonar.exclusions=**/tests/**,**/__pycache__/**
+
+  - task: SonarCloudAnalyze@3
+    displayName: 'Ejecutar análisis SonarCloud'
+
+  - task: SonarCloudPublish@3
+    displayName: 'Publicar resultados SonarCloud'
+    inputs:
+      pollingTimeoutSec: '300'

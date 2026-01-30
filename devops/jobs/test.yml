@@ -1,0 +1,45 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+
+jobs:
+  - job: TestJob
+    displayName: 'Tests, análisis y push a DockerHub'
+    dependsOn: BuildJob
+    variables:
+      configVersion: $[ dependencies.BuildJob.outputs['readVersion.configVersion'] ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - checkout: self
+
+      - task: DownloadBuildArtifacts@1
+        displayName: 'Descargar artefactos de build'
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'build-artifacts'
+          downloadPath: '$(Pipeline.Workspace)'
+
+      - script: |
+          echo "Usando versión: $(configVersion)"
+        displayName: 'Mostrar versión de imagen'
+
+      - template: ../steps/install-dependencies.yml
+        parameters:
+          workingDirectory: 'api_python'
+
+      - template: ../steps/run-unit-tests.yml
+        parameters:
+          workingDirectory: 'api_python'
+
+      - template: ../steps/sonar-analysis.yml
+
+      - template: ../steps/trivy-scan.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
+
+      - template: ../steps/push-dockerhub.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}

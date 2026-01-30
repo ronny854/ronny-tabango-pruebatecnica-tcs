@@ -1,0 +1,29 @@
+parameters:
+  - name: workingDirectory
+    type: string
+    default: 'api_python'
+
+steps:
+  - script: |
+      python -m pytest tests/ \
+        --junitxml=$(Common.TestResultsDirectory)/test-results.xml \
+        --cov=. \
+        --cov-report=xml:$(Common.TestResultsDirectory)/coverage.xml \
+        --cov-report=html:$(Common.TestResultsDirectory)/htmlcov \
+        -v
+    displayName: 'Ejecutar tests unitarios'
+    workingDirectory: ${{ parameters.workingDirectory }}
+
+  - task: PublishTestResults@2
+    displayName: 'Publicar resultados de tests'
+    inputs:
+      testResultsFormat: 'JUnit'
+      testResultsFiles: '$(Common.TestResultsDirectory)/test-results.xml'
+      failTaskOnFailedTests: true
+    condition: always()
+
+  - task: PublishCodeCoverageResults@2
+    displayName: 'Publicar cobertura de código'
+    inputs:
+      summaryFileLocation: '$(Common.TestResultsDirectory)/coverage.xml'
+    condition: always()

@@ -1,0 +1,47 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+  - name: semanticVersion
+    type: string
+    default: 'none'
+
+jobs:
+  - job: DeployJob
+    displayName: 'Deploy del microservicio'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - checkout: self
+
+      # Leer versión de configVersion.json
+      - script: |
+          VERSION=$(python3 -c "import json; print(json.load(open('configVersion.json'))['version'])")
+          echo "##vso[task.setvariable variable=configVersion]$VERSION"
+          echo "Versión leída de configVersion.json: $VERSION"
+        displayName: 'Leer versión de configVersion.json'
+
+      # Cuando semanticVersion != none → rollback: verificar que la versión exista en DockerHub
+      - script: |
+          echo "Verificando si la versión ${{ parameters.semanticVersion }} existe en DockerHub..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://hub.docker.com/v2/repositories/$(dockerHubRepository)/tags/${{ parameters.semanticVersion }}")
+          if [ "$RESPONSE" = "200" ]; then
+            echo "La versión ${{ parameters.semanticVersion }} existe en DockerHub. Procediendo con el rollback..."
+          else
+            echo "##vso[task.logissue type=error]ERROR: La versión ${{ parameters.semanticVersion }} NO existe en DockerHub. No se puede realizar el rollback."
+            echo "##vso[task.complete result=Failed;]Versión no encontrada en DockerHub"
+            exit 1
+          fi
+        displayName: 'Verificar versión en DockerHub (rollback)'
+        condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
+
+      # Despliegue normal o rollback
+      - script: |
+          echo "Iniciando deploy..."
+          if [ "${{ parameters.semanticVersion }}" != "none" ]; then
+            echo "Modo rollback: desplegando versión ${{ parameters.semanticVersion }}"
+          else
+            echo "Modo normal: desplegando versión $(configVersion)"
+          fi
+        displayName: 'Iniciando deploy'

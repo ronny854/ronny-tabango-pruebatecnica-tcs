@@ -1,0 +1,21 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+  - name: semanticVersion
+    type: string
+    default: 'none'
+  - name: dependsOn
+    type: string
+    default: 'CI'
+
+stages:
+  - stage: CD
+    displayName: 'CD - Despliegue Continuo'
+    dependsOn: ${{ parameters.dependsOn }}
+    condition: succeeded()
+    jobs:
+      - template: ../jobs/deploy.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
+          semanticVersion: ${{ parameters.semanticVersion }}

@@ -1,0 +1,59 @@
+trigger:
+  branches:
+    include:
+      - '*'
+  paths:
+    include:
+      - api_python/**
+      - devops/**
+      - k8s/**
+
+pr:
+  branches:
+    include:
+      - main
+      - master
+      - develop
+
+# Parámetros para ejecución bajo demanda
+parameters:
+  - name: semanticVersion
+    displayName: 'Rollback a versión (none = ejecución normal CI+CD)'
+    type: string
+    default: 'none'
+
+  - name: imageName
+    displayName: 'Nombre de la imagen Docker'
+    type: string
+    default: 'devops-microservice'
+
+variables:
+  - name: isMainBranch
+    value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}
+  - name: dockerHubRepository
+    value: 'ronnytabango/devops-microservice'
+  - name: dockerHubServiceConnection
+    value: 'DockerHub'
+  - name: sonarServiceConnection
+    value: 'SonarCloud'
+  - name: sonarOrganization
+    value: 'devops-microservice'
+  - name: sonarProjectKey
+    value: 'devops-microservice'
+
+stages:
+  # ---- Etapa 1: CI - Integración Continua (solo cuando semanticVersion == none) ----
+  - template: stages/ci.yml
+    parameters:
+      imageName: ${{ parameters.imageName }}
+      semanticVersion: ${{ parameters.semanticVersion }}
+
+  # ---- Etapa 2: CD - Despliegue Continuo ----
+  - template: stages/cd.yml
+    parameters:
+      imageName: ${{ parameters.imageName }}
+      semanticVersion: ${{ parameters.semanticVersion }}
+      ${{ if eq(parameters.semanticVersion, 'none') }}:
+        dependsOn: 'CI'
+      ${{ else }}:
+        dependsOn: ''

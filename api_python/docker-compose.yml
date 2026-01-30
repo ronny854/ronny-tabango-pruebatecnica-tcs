@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  devops-microservice:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: devops-microservice:latest
+    container_name: devops-microservice
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=False
+      - HOST=0.0.0.0
+      - PORT=5000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - devops-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    resources:
+      limits:
+        cpus: '0.5'
+        memory: 256M
+      reservations:
+        cpus: '0.25'
+        memory: 128M
+
+networks:
+  devops-network:
+    driver: bridge

@@ -1,0 +1,20 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+  - name: semanticVersion
+    type: string
+    default: 'none'
+
+stages:
+  - stage: CI
+    displayName: 'CI - Integración Continua'
+    condition: eq('${{ parameters.semanticVersion }}', 'none')
+    jobs:
+      - template: ../jobs/build.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
+
+      - template: ../jobs/test.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}

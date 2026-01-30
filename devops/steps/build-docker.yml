@@ -1,0 +1,22 @@
+parameters:
+  - name: dockerfilePath
+    type: string
+    default: 'api_python/Dockerfile'
+  - name: context
+    type: string
+    default: 'api_python'
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+
+steps:
+  - script: |
+      docker build -t ${{ parameters.imageName }}:$(configVersion) \
+        -f ${{ parameters.dockerfilePath }} \
+        ${{ parameters.context }}
+    displayName: 'Build imagen Docker'
+
+  - script: |
+      mkdir -p $(Build.ArtifactStagingDirectory)/docker
+      docker save ${{ parameters.imageName }}:$(configVersion) | gzip > $(Build.ArtifactStagingDirectory)/docker/${{ parameters.imageName }}-$(configVersion).tar.gz
+    displayName: 'Exportar imagen Docker a tar.gz'
