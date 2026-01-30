@@ -1,17 +1,15 @@
 parameters:
-  - name: sonarProjectName
-    type: string
-    default: 'DevOps Microservice'
-
+- name: sonarProjectName
+- name: sonarOrganization
 steps:
   - task: SonarCloudPrepare@3
     displayName: 'Preparar análisis SonarCloud'
     inputs:
       SonarCloud: $(sonarServiceConnection)
-      organization: $(sonarOrganization)
+      organization: ${{ parameters.sonarOrganization }}
       scannerMode: 'CLI'
       configMode: 'manual'
-      cliProjectKey: $(sonarProjectKey)
+      cliProjectKey: ${{ parameters.sonarOrganization }}_${{ parameters.sonarProjectName }}
       cliProjectName: ${{ parameters.sonarProjectName }}
       cliSources: 'api_python'
       extraProperties: |

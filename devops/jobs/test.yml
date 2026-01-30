@@ -2,6 +2,8 @@ parameters:
   - name: imageName
     type: string
     default: 'devops-microservice'
+  - name: sonarProjectName
+  - name: sonarOrganization
 
 jobs:
   - job: TestJob
@@ -35,6 +37,9 @@ jobs:
           workingDirectory: 'api_python'
 
       - template: ../steps/sonar-analysis.yml
+        parameters:
+          sonarProjectName: ${{ parameters.sonarProjectName }}
+          sonarOrganization: ${{ parameters.sonarOrganization }}
 
       - template: ../steps/trivy-scan.yml
         parameters:

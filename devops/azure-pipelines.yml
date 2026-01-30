@@ -25,21 +25,23 @@ parameters:
   - name: imageName
     displayName: 'Nombre de la imagen Docker'
     type: string
-    default: 'devops-microservice'
+    default: 'ronnytabango/devops-microservice'
+  - name: sonarProjectName
+    displayName: 'Nombre del proyecto en SonarCloud'
+    type: string
+    default: 'ronny-tabango-pruebatecnica-tcs'
+  - name: sonarOrganization
+    displayName: 'SonarCloud Organization (ej: tu-org-sonarcloud)'
+    type: string
+    default: 'ronny854'
 
 variables:
-  - name: isMainBranch
-    value: ${{ or(eq(variables['Build.SourceBranch'], 'refs/heads/main'), eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}
-  - name: dockerHubRepository
-    value: 'ronnytabango/devops-microservice'
+  - name: containerRegistry
+    value: 'docker.io'
   - name: dockerHubServiceConnection
-    value: 'DockerHub'
+    value: 'dockerRegistryServiceConnection'
   - name: sonarServiceConnection
-    value: 'SonarCloud'
-  - name: sonarOrganization
-    value: 'devops-microservice'
-  - name: sonarProjectKey
-    value: 'devops-microservice'
+    value: 'conection-sonarqube-github-account'
 
 stages:
   # ---- Etapa 1: CI - Integración Continua (solo cuando semanticVersion == none) ----
@@ -47,6 +49,8 @@ stages:
     parameters:
       imageName: ${{ parameters.imageName }}
       semanticVersion: ${{ parameters.semanticVersion }}
+      sonarProjectName: ${{ parameters.sonarProjectName }}
+      sonarOrganization: ${{ parameters.sonarOrganization }}
 
   # ---- Etapa 2: CD - Despliegue Continuo ----
   - template: stages/cd.yml

@@ -11,10 +11,10 @@ steps:
       containerRegistry: $(dockerHubServiceConnection)
 
   - script: |
-      docker tag ${{ parameters.imageName }}:$(configVersion) $(dockerHubRepository):latest
-      docker tag ${{ parameters.imageName }}:$(configVersion) $(dockerHubRepository):$(configVersion)
-      docker push $(dockerHubRepository):latest
-      docker push $(dockerHubRepository):$(configVersion)
+      docker tag ${{ parameters.imageName }}:$(configVersion) $(containerRegistry):latest
+      docker tag ${{ parameters.imageName }}:$(configVersion) $(containerRegistry):$(configVersion)
+      docker push $(containerRegistry):latest
+      docker push $(containerRegistry):$(configVersion)
     displayName: 'Push imagen a DockerHub (latest + $(configVersion))'
 
   - task: Docker@2
