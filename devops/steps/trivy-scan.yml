@@ -5,7 +5,11 @@ parameters:
 
 steps:
   - script: |
-      docker load < $(Pipeline.Workspace)/build-artifacts/docker/${{ parameters.imageName }}-$(configVersion).tar.gz
+      set -euo pipefail
+      safeFileName=$(echo "${{ parameters.imageName }}" | tr '/' '-')
+      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
+      tagImage=$(configVersion)
+      docker load < "$(Pipeline.Workspace)/build-artifacts/docker/${safeFileName}-${tagImage}.tar.gz"
     displayName: 'Cargar imagen Docker desde artefacto'
 
   - script: |
@@ -13,13 +17,16 @@ steps:
     displayName: 'Instalar Trivy'
 
   - script: |
+      set -euo pipefail
+      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
+      tagImage=$(configVersion)
       trivy image \
         --format table \
         --exit-code 1 \
         --severity CRITICAL,HIGH \
         --ignore-unfixed \
         --output $(Common.TestResultsDirectory)/trivy-report.txt \
-        ${{ parameters.imageName }}:$(configVersion)
+        ${imageFullName}:${tagImage}
     displayName: 'Escanear imagen con Trivy'
     continueOnError: true
 

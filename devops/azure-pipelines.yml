@@ -25,7 +25,7 @@ parameters:
   - name: imageName
     displayName: 'Nombre de la imagen Docker'
     type: string
-    default: 'ronnytabango/devops-microservice'
+    default: 'ronnyt854/devops-microservice'
   - name: sonarProjectName
     displayName: 'Nombre del proyecto en SonarCloud'
     type: string
