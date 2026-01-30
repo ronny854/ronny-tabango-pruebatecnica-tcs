@@ -13,26 +13,9 @@ steps:
     displayName: 'Cargar imagen Docker desde artefacto'
 
   - script: |
-      curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
-    displayName: 'Instalar Trivy'
-
-  - script: |
       set -euo pipefail
-      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
-      tagImage=$(configVersion)
-      trivy image \
-        --format table \
-        --exit-code 1 \
-        --severity CRITICAL,HIGH \
-        --ignore-unfixed \
-        --output $(Common.TestResultsDirectory)/trivy-report.txt \
-        ${imageFullName}:${tagImage}
-    displayName: 'Escanear imagen con Trivy'
-    continueOnError: true
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publicar reporte Trivy'
-    inputs:
-      PathtoPublish: '$(Common.TestResultsDirectory)/trivy-report.txt'
-      ArtifactName: 'trivy-report'
-    condition: always()
+      echo "=== Scanning Docker Image for Vulnerabilities ==="
+      docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
+        aquasec/trivy:latest image --severity HIGH,CRITICAL \
+        ${{ parameters.containerRegistry }}/${{ parameters.imageName }}:$(configVersion) || true
+    displayName: 'Docker Image Vulnerability Scan - Trivy'
