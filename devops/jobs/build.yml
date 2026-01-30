@@ -14,7 +14,8 @@ jobs:
       # Leer versión de configVersion.json como tag de imagen
       - script: |
           VERSION=$(python3 -c "import json; print(json.load(open('configVersion.json'))['version'])")
-          echo "##vso[task.setvariable variable=configVersion;isOutput=true]$VERSION"
+          # echo "##vso[task.setvariable variable=configVersion;isOutput=true]$VERSION"
+          echo "##vso[task.setvariable variable=configVersion]$VERSION"
           echo "Versión leída de configVersion.json: $VERSION"
         displayName: 'Leer versión de configVersion.json'
         name: readVersion

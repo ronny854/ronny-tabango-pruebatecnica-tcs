@@ -11,12 +11,15 @@ parameters:
 
 steps:
   - script: |
-      docker build -t ${{ parameters.imageName }}:$(configVersion) \
+      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
+      tagImage=$(configVersion)
+      echo "Building: ${imageFullName}:${tagImage}"
+      docker build -t ${imageFullName}:${tagImage} \
         -f ${{ parameters.dockerfilePath }} \
         ${{ parameters.context }}
     displayName: 'Build imagen Docker'
 
   - script: |
       mkdir -p $(Build.ArtifactStagingDirectory)/docker
-      docker save ${{ parameters.imageName }}:$(configVersion) | gzip > $(Build.ArtifactStagingDirectory)/docker/${{ parameters.imageName }}-$(configVersion).tar.gz
+      docker save ${imageFullName}:${tagImage} | gzip > $(Build.ArtifactStagingDirectory)/docker/${{ parameters.imageName }}-$(configVersion).tar.gz
     displayName: 'Exportar imagen Docker a tar.gz'

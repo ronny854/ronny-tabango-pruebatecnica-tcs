@@ -11,15 +11,12 @@ jobs:
     displayName: 'Deploy del microservicio'
     pool:
       vmImage: 'ubuntu-latest'
+    ${{ if eq(parameters.semanticVersion, 'none') }}:
+      variables:
+        imageFullName: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullName'] ]
+        tagImage: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.tagImage'] ]
     steps:
       - checkout: self
-
-      # Leer versión de configVersion.json
-      - script: |
-          VERSION=$(python3 -c "import json; print(json.load(open('configVersion.json'))['version'])")
-          echo "##vso[task.setvariable variable=configVersion]$VERSION"
-          echo "Versión leída de configVersion.json: $VERSION"
-        displayName: 'Leer versión de configVersion.json'
 
       # Cuando semanticVersion != none → rollback: verificar que la versión exista en DockerHub
       - script: |
@@ -36,12 +33,16 @@ jobs:
         displayName: 'Verificar versión en DockerHub (rollback)'
         condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
 
-      # Despliegue normal o rollback
+      # Despliegue normal - usa output del CI
       - script: |
           echo "Iniciando deploy..."
-          if [ "${{ parameters.semanticVersion }}" != "none" ]; then
-            echo "Modo rollback: desplegando versión ${{ parameters.semanticVersion }}"
-          else
-            echo "Modo normal: desplegando versión $(configVersion)"
-          fi
-        displayName: 'Iniciando deploy'
+          echo "Imagen: $(imageFullName):$(tagImage)"
+        displayName: 'Iniciando deploy (normal)'
+        condition: and(succeeded(), eq('${{ parameters.semanticVersion }}', 'none'))
+
+      # Despliegue rollback
+      - script: |
+          echo "Iniciando deploy..."
+          echo "Modo rollback: desplegando $(containerRegistry)/${{ parameters.imageName }}:${{ parameters.semanticVersion }}"
+        displayName: 'Iniciando deploy (rollback)'
+        condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
