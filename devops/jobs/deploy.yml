@@ -26,7 +26,7 @@ jobs:
           set -euo pipefail
           echo "Verificando si la versión ${{ parameters.semanticVersion }} existe en DockerHub..."
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://hub.docker.com/v2/repositories/$(containerRegistry)/${{ parameters.imageName }}/tags/${{ parameters.semanticVersion }}")
+            "https://hub.docker.com/v2/repositories/${{ parameters.imageName }}/tags/${{ parameters.semanticVersion }}")
           if [ "$RESPONSE" = "200" ]; then
             echo "La versión ${{ parameters.semanticVersion }} existe en DockerHub. Procediendo con el rollback..."
           else
