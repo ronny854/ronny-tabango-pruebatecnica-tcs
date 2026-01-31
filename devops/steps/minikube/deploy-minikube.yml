@@ -1,0 +1,47 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+  - name: semanticVersion
+    type: string
+    default: 'none'
+
+steps:
+  - script: |
+      set -euo pipefail
+      if [ '${{ parameters.semanticVersion }}' = 'none' ]; then
+        echo "Usando imagen recién construida para deploy"
+        echo "Imagen: $(imageFullNameTag)"
+        imageForDeploy="$(imageFullNameTag)"
+      else
+        echo "Usando imagen para rollback: ${{ parameters.semanticVersion }}"
+        imageForDeploy="$(containerRegistry)/${{ parameters.imageName }}:${{ parameters.semanticVersion }}"
+      fi
+      echo "##vso[task.setvariable variable=imageForDeploy]${imageForDeploy}"
+      echo "Inyectando imagen en deployment.yaml"
+      sed -i "s|IMAGE_PLACEHOLDER|${imageForDeploy}|g" k8s/deployment.yaml
+      echo "Transfiriendo manifiestos k8s al servidor minikube..."
+      ssh minikube-server "rm -rf /tmp/k8s-manifests && mkdir -p /tmp/k8s-manifests"
+      scp -r $(Build.SourcesDirectory)/k8s/* minikube-server:/tmp/k8s-manifests/
+      echo "Manifiestos transferidos correctamente"
+      ssh minikube-server "ls -la /tmp/k8s-manifests/"
+    displayName: 'Transfer K8s Manifests'
+
+  - script: |
+      set -euo pipefail
+      ssh minikube-server "chmod +x /tmp/k8s-manifests/deploy.sh"
+    displayName: 'Prepare Deploy Script'
+
+  - script: |
+      set -euo pipefail
+      echo "Deploying image: ${imageForDeploy}"
+      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '${imageForDeploy}'"
+    displayName: 'Deploy to Minikube'
+    condition: and(succeeded(), eq('${{ parameters.semanticVersion }}', 'none'))
+
+  - script: |
+      set -euo pipefail
+      echo "Rolling back to version: ${{ parameters.semanticVersion }}"
+      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '$(containerRegistry)/${{ parameters.imageName }}:${{ parameters.semanticVersion }}'"
+    displayName: 'Deploy to Minikube (Rollback)'
+    condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))

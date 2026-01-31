@@ -8,23 +8,20 @@ parameters:
 
 jobs:
   - job: DeployJob
-    displayName: 'Deploy del microservicio en Minikube'
+    displayName: 'Deploy to Minikube'
     pool: minikube-agents
     ${{ if eq(parameters.semanticVersion, 'none') }}:
       variables:
         - name: imageFullNameTag
-          value: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullNameTag'] ]
+          value: $[ stageDependencies.CI.DockerJob.outputs['PushDockerHub.imageFullNameTag'] ]
     steps:
       - checkout: self
-
-      # Verificar conectividad SSH con minikube-server
       - script: |
           set -euo pipefail
           echo "Verificando conexión SSH con minikube-server..."
           ssh minikube-server "echo 'SSH OK' && minikube status"
-        displayName: 'Verificar conexión SSH con minikube-server'
+        displayName: 'Verify SSH Connection'
 
-      # Cuando semanticVersion != none → rollback: verificar que la versión exista en DockerHub
       - script: |
           set -euo pipefail
           echo "Verificando si la versión ${{ parameters.semanticVersion }} existe en DockerHub..."
@@ -37,11 +34,10 @@ jobs:
             echo "##vso[task.complete result=Failed;]Versión no encontrada en DockerHub"
             exit 1
           fi
-        displayName: 'Verificar versión en DockerHub (rollback)'
+        displayName: 'Verify DockerHub Version (Rollback)'
         condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
 
-      # Deploy en minikube via SSH
-      - template: ../steps/deploy-minikube.yml
+      - template: ../steps/minikube/deploy-minikube.yml
         parameters:
           imageName: ${{ parameters.imageName }}
           semanticVersion: ${{ parameters.semanticVersion }}

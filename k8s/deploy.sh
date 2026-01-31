@@ -13,7 +13,8 @@ set -euo pipefail
 DEPLOY_IMAGE="${1:?ERROR: Se requiere la imagen completa como argumento (ej: registry/image:tag)}"
 
 NAMESPACE="devops-microservice"
-K8S_DIR="/tmp/k8s-manifests"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+K8S_DIR="${SCRIPT_DIR}"
 SERVICE_NAME="devops-microservice"
 SERVICE_PORT=80
 EXPOSE_PORT=30080

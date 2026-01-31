@@ -1,0 +1,41 @@
+parameters:
+  - name: imageName
+    type: string
+    default: 'devops-microservice'
+
+jobs:
+  - job: DockerJob
+    displayName: 'Docker Build, Scan & Push'
+    dependsOn: BuildJob
+    variables:
+      configVersion: $[ dependencies.BuildJob.outputs['readVersion.configVersion'] ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - checkout: self
+
+      - task: DownloadBuildArtifacts@1
+        displayName: 'Download Build Artifacts'
+        inputs:
+          buildType: 'current'
+          downloadType: 'single'
+          artifactName: 'build-artifacts'
+          downloadPath: '$(Pipeline.Workspace)'
+
+      - script: |
+          echo "Using version: $(configVersion)"
+        displayName: 'Show Version'
+
+      - template: ../steps/docker/build-docker.yml
+        parameters:
+          dockerfilePath: 'api_python/Dockerfile'
+          context: 'api_python'
+          imageName: ${{ parameters.imageName }}
+
+      - template: ../steps/docker/trivy-scan.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
+
+      - template: ../steps/docker/push-dockerhub.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}

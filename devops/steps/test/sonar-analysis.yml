@@ -3,7 +3,7 @@ parameters:
 - name: sonarOrganization
 steps:
   - task: SonarCloudPrepare@3
-    displayName: 'Preparar análisis SonarCloud'
+    displayName: 'SonarCloud Prepare'
     inputs:
       SonarCloud: $(sonarServiceConnection)
       organization: ${{ parameters.sonarOrganization }}
@@ -18,9 +18,9 @@ steps:
         sonar.exclusions=**/tests/**,**/__pycache__/**
 
   - task: SonarCloudAnalyze@3
-    displayName: 'Ejecutar análisis SonarCloud'
+    displayName: 'SonarCloud Analyze'
 
   - task: SonarCloudPublish@3
-    displayName: 'Publicar resultados SonarCloud'
+    displayName: 'SonarCloud Publish'
     inputs:
       pollingTimeoutSec: '300'

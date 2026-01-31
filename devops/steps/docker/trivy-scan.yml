@@ -6,14 +6,6 @@ parameters:
 steps:
   - script: |
       set -euo pipefail
-      safeFileName=$(echo "${{ parameters.imageName }}" | tr '/' '-')
-      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
-      tagImage=$(configVersion)
-      docker load < "$(Pipeline.Workspace)/build-artifacts/docker/${safeFileName}-${tagImage}.tar.gz"
-    displayName: 'Cargar imagen Docker desde artefacto'
-
-  - script: |
-      set -euo pipefail
       echo "=== Scanning Docker Image for Vulnerabilities ==="
       docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
         aquasec/trivy:latest image --severity HIGH,CRITICAL \

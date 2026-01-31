@@ -10,7 +10,7 @@ parameters:
 
 stages:
   - stage: CI
-    displayName: 'CI - Integración Continua'
+    displayName: 'CI - Continuous Integration'
     condition: eq('${{ parameters.semanticVersion }}', 'none')
     jobs:
       - template: ../jobs/build.yml
@@ -19,6 +19,9 @@ stages:
 
       - template: ../jobs/test.yml
         parameters:
-          imageName: ${{ parameters.imageName }}
           sonarProjectName: ${{ parameters.sonarProjectName }}
           sonarOrganization: ${{ parameters.sonarOrganization }}
+
+      - template: ../jobs/docker.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}

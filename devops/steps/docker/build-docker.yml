@@ -19,20 +19,9 @@ steps:
       docker build -t ${imageFullName}:${tagImage} \
         -f ${{ parameters.dockerfilePath }} \
         ${{ parameters.context }}
-    displayName: 'Build imagen Docker'
+    displayName: 'Docker Build'
 
   - script: |
       set -euo pipefail
       docker images
-    displayName: 'Listar imágenes Docker'
-
-  - script: |
-      set -euo pipefail
-      imageFullName=$(containerRegistry)/${{ parameters.imageName }}
-      tagImage=$(configVersion)
-      safeFileName=$(echo "${{ parameters.imageName }}" | tr '/' '-')
-      mkdir -p $(Build.ArtifactStagingDirectory)/docker
-      docker save ${imageFullName}:${tagImage} | gzip > "$(Build.ArtifactStagingDirectory)/docker/${safeFileName}-${tagImage}.tar.gz"
-      echo "Docker image exported: ${safeFileName}-${tagImage}.tar.gz"
-      ls -lh $(Build.ArtifactStagingDirectory)/docker/
-    displayName: 'Exportar imagen Docker a tar.gz'
+    displayName: 'List Docker Images'

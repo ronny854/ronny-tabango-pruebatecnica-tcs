@@ -5,7 +5,7 @@ parameters:
 
 steps:
   - task: Docker@2
-    displayName: 'Login en DockerHub'
+    displayName: 'DockerHub Login'
     inputs:
       command: login
       containerRegistry: $(dockerHubServiceConnection)
@@ -19,7 +19,7 @@ steps:
       imageFullNameTag="${imageFullName}:${tagImage}"
       echo "##vso[task.setvariable variable=imageFullNameTag;isOutput=true]${imageFullNameTag}"
       echo "Output: ${imageFullNameTag}"
-    displayName: 'Push imagen a DockerHub (latest + $(configVersion))'
+    displayName: 'Docker Push'
     name: PushDockerHub
 
   - script: |

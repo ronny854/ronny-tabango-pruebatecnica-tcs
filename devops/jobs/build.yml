@@ -5,38 +5,31 @@ parameters:
 
 jobs:
   - job: BuildJob
-    displayName: 'Build del proyecto y Docker'
+    displayName: 'Build App Python'
     pool:
       vmImage: 'ubuntu-latest'
     steps:
       - checkout: self
 
-      # Leer versión de configVersion.json como tag de imagen
       - script: |
           VERSION=$(python3 -c "import json; print(json.load(open('configVersion.json'))['version'])")
           echo "##vso[task.setvariable variable=configVersion;isOutput=true]$VERSION"
           echo "##vso[task.setvariable variable=configVersion]$VERSION"
-          echo "Versión leída de configVersion.json: $VERSION"
-        displayName: 'Leer versión de configVersion.json'
+          echo "Version: $VERSION"
+        displayName: 'Read Version'
         name: readVersion
 
-      - template: ../steps/install-dependencies.yml
+      - template: ../steps/python/install-dependencies.yml
         parameters:
           workingDirectory: 'api_python'
 
       - script: |
-          python -c "from app import app; print('Build del proyecto exitoso')"
-        displayName: 'Validar build del proyecto'
+          python -c "from app import app; print('Build OK')"
+        displayName: 'Validate Python Build'
         workingDirectory: 'api_python'
 
-      - template: ../steps/build-docker.yml
-        parameters:
-          dockerfilePath: 'api_python/Dockerfile'
-          context: 'api_python'
-          imageName: ${{ parameters.imageName }}
-
       - task: CopyFiles@2
-        displayName: 'Copiar código fuente al artefacto'
+        displayName: 'Copy Source Code'
         inputs:
           SourceFolder: 'api_python'
           Contents: |
@@ -45,13 +38,13 @@ jobs:
           TargetFolder: '$(Build.ArtifactStagingDirectory)/source'
 
       - task: CopyFiles@2
-        displayName: 'Copiar configVersion.json al artefacto'
+        displayName: 'Copy configVersion.json'
         inputs:
           Contents: 'configVersion.json'
           TargetFolder: '$(Build.ArtifactStagingDirectory)'
 
       - task: PublishBuildArtifacts@1
-        displayName: 'Publicar artefactos de build'
+        displayName: 'Publish Build Artifacts'
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'build-artifacts'

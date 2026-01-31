@@ -44,7 +44,6 @@ variables:
     value: 'conection-sonarqube-github-account'
 
 stages:
-  # ---- Etapa 1: CI - Integración Continua (solo cuando semanticVersion == none) ----
   - template: stages/ci.yml
     parameters:
       imageName: ${{ parameters.imageName }}
@@ -52,7 +51,6 @@ stages:
       sonarProjectName: ${{ parameters.sonarProjectName }}
       sonarOrganization: ${{ parameters.sonarOrganization }}
 
-  # ---- Etapa 2: CD - Despliegue Continuo ----
   - template: stages/cd.yml
     parameters:
       imageName: ${{ parameters.imageName }}

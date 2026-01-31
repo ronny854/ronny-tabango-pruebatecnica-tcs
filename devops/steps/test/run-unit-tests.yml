@@ -11,11 +11,11 @@ steps:
         --cov-report=xml:$(Common.TestResultsDirectory)/coverage.xml \
         --cov-report=html:$(Common.TestResultsDirectory)/htmlcov \
         -v
-    displayName: 'Ejecutar tests unitarios'
+    displayName: 'Run Unit Tests'
     workingDirectory: ${{ parameters.workingDirectory }}
 
   - task: PublishTestResults@2
-    displayName: 'Publicar resultados de tests'
+    displayName: 'Publish Test Results'
     inputs:
       testResultsFormat: 'JUnit'
       testResultsFiles: '$(Common.TestResultsDirectory)/test-results.xml'
@@ -23,7 +23,7 @@ steps:
     condition: always()
 
   - task: PublishCodeCoverageResults@2
-    displayName: 'Publicar cobertura de código'
+    displayName: 'Publish Code Coverage'
     inputs:
       summaryFileLocation: '$(Common.TestResultsDirectory)/coverage.xml'
     condition: always()

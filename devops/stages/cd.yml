@@ -11,7 +11,7 @@ parameters:
 
 stages:
   - stage: CD
-    displayName: 'CD - Despliegue Continuo'
+    displayName: 'CD - Continuous Deployment'
     dependsOn: ${{ parameters.dependsOn }}
     condition: succeeded()
     jobs:
