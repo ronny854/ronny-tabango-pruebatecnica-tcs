@@ -37,7 +37,7 @@ spec:
                 topologyKey: kubernetes.io/hostname
       containers:
         - name: devops-microservice
-          image: devops-microservice:latest
+          image: IMAGE_PLACEHOLDER
           # IfNotPresent: compatible con Minikube (local) y con registries en la nube
           imagePullPolicy: IfNotPresent
           ports:

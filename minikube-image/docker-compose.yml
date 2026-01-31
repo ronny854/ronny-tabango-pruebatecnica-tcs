@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  minikube-server:
+    build: ./minikube-server
+    container_name: minikube-server
+    hostname: minikube-server
+    privileged: true
+    ports:
+      - "2222:22"         # SSH
+      - "8443:8443"       # API Server
+      - "8001:8001"       # Dashboard (kubectl proxy)
+      - "30000-30100:30000-30100"  # NodePort range
+    volumes:
+      - minikube-data:/root/.minikube
+      - docker-data:/var/lib/docker
+      - ssh-keys:/ssh-keys    # Volumen compartido para SSH keys
+    environment:
+      - DOCKER_TLS_CERTDIR=
+    networks:
+      - k8s-network
+    tty: true
+    stdin_open: true
+    healthcheck:
+      test: ["CMD", "minikube", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  azure-agent:
+    build: ./azure-agent
+    container_name: azure-agent
+    hostname: azure-agent
+    depends_on:
+      - minikube-server
+    environment:
+      - AZP_URL=${AZP_URL:-}
+      - AZP_TOKEN=${AZP_TOKEN:-}
+      - AZP_POOL=${AZP_POOL:-Default}
+      - AZP_AGENT_NAME=${AZP_AGENT_NAME:-azure-agent-docker}
+    volumes:
+      - agent-work:/azp/agent/_work
+      - ssh-keys:/ssh-keys    # Volumen compartido para SSH keys
+    networks:
+      - k8s-network
+    tty: true
+    stdin_open: true
+
+networks:
+  k8s-network:
+    driver: bridge
+
+volumes:
+  minikube-data:
+  docker-data:
+  agent-work:
+  ssh-keys:       # Volumen para compartir SSH keys entre contenedores

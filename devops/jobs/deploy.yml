@@ -8,21 +8,27 @@ parameters:
 
 jobs:
   - job: DeployJob
-    displayName: 'Deploy del microservicio'
-    pool:
-      vmImage: 'ubuntu-latest'
+    displayName: 'Deploy del microservicio en Minikube'
+    pool: minikube-agents
     ${{ if eq(parameters.semanticVersion, 'none') }}:
       variables:
-        imageFullName: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullName'] ]
-        tagImage: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.tagImage'] ]
+        imageFullNameTag: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullNameTag'] ]
     steps:
       - checkout: self
 
+      # Verificar conectividad SSH con minikube-server
+      - script: |
+          set -euo pipefail
+          echo "Verificando conexión SSH con minikube-server..."
+          ssh minikube-server "echo 'SSH OK' && minikube status"
+        displayName: 'Verificar conexión SSH con minikube-server'
+
       # Cuando semanticVersion != none → rollback: verificar que la versión exista en DockerHub
       - script: |
+          set -euo pipefail
           echo "Verificando si la versión ${{ parameters.semanticVersion }} existe en DockerHub..."
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-            "https://hub.docker.com/v2/repositories/$(containerRegistry)/tags/${{ parameters.semanticVersion }}")
+            "https://hub.docker.com/v2/repositories/$(containerRegistry)/${{ parameters.imageName }}/tags/${{ parameters.semanticVersion }}")
           if [ "$RESPONSE" = "200" ]; then
             echo "La versión ${{ parameters.semanticVersion }} existe en DockerHub. Procediendo con el rollback..."
           else
@@ -33,16 +39,8 @@ jobs:
         displayName: 'Verificar versión en DockerHub (rollback)'
         condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
 
-      # Despliegue normal - usa output del CI
-      - script: |
-          echo "Iniciando deploy..."
-          echo "Imagen: $(imageFullName):$(tagImage)"
-        displayName: 'Iniciando deploy (normal)'
-        condition: and(succeeded(), eq('${{ parameters.semanticVersion }}', 'none'))
-
-      # Despliegue rollback
-      - script: |
-          echo "Iniciando deploy..."
-          echo "Modo rollback: desplegando $(containerRegistry)/${{ parameters.imageName }}:${{ parameters.semanticVersion }}"
-        displayName: 'Iniciando deploy (rollback)'
-        condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))
+      # Deploy en minikube via SSH
+      - template: ../steps/deploy-minikube.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
+          semanticVersion: ${{ parameters.semanticVersion }}

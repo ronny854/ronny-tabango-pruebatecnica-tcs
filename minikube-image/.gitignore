@@ -1,0 +1,12 @@
+# Archivos de credenciales
+.env
+
+# Docker
+docker-data/
+
+# Logs
+*.log
+
+# Temporales
+*.tmp
+*~

@@ -16,14 +16,16 @@ steps:
       docker tag ${imageFullName}:${tagImage} ${imageFullName}:latest
       docker push ${imageFullName}:latest
       docker push ${imageFullName}:${tagImage}
-      echo "##vso[task.setvariable variable=imageFullName;isOutput=true]${imageFullName}"
-      echo "##vso[task.setvariable variable=tagImage;isOutput=true]${tagImage}"
-      echo "Output: ${imageFullName}:${tagImage}"
+      imageFullNameTag="${imageFullName}:${tagImage}"
+      echo "##vso[task.setvariable variable=imageFullNameTag;isOutput=true]${imageFullNameTag}"
+      echo "Output: ${imageFullNameTag}"
     displayName: 'Push imagen a DockerHub (latest + $(configVersion))'
     name: PushDockerHub
 
-  - task: Docker@2
-    displayName: 'Logout de DockerHub'
-    inputs:
-      command: logout
-      containerRegistry: $(dockerHubServiceConnection)
+  - script: |
+      echo "=== Docker Logout & Cleanup ==="
+      docker logout ${{ parameters.containerRegistry }} || true
+      docker image prune -f || true
+      echo "✅ Limpieza completada"
+    displayName: 'Docker Cleanup'
+    condition: always()

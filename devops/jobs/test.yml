@@ -45,6 +45,6 @@ jobs:
         parameters:
           imageName: ${{ parameters.imageName }}
 
-      # - template: ../steps/push-dockerhub.yml
-      #   parameters:
-      #     imageName: ${{ parameters.imageName }}
+      - template: ../steps/push-dockerhub.yml
+        parameters:
+          imageName: ${{ parameters.imageName }}
