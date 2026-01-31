@@ -34,14 +34,14 @@ steps:
 
   - script: |
       set -euo pipefail
-      echo "Deploying image: ${imageForDeploy}"
-      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '${imageForDeploy}'"
+      echo "Deploying image: $(imageForDeploy)"
+      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '$(imageForDeploy)'"
     displayName: 'Deploy to Minikube'
     condition: and(succeeded(), eq('${{ parameters.semanticVersion }}', 'none'))
 
   - script: |
       set -euo pipefail
       echo "Rolling back to version: ${{ parameters.semanticVersion }}"
-      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '$(containerRegistry)/${{ parameters.imageName }}:${{ parameters.semanticVersion }}'"
+      ssh minikube-server "/tmp/k8s-manifests/deploy.sh '$(imageForDeploy)'"
     displayName: 'Deploy to Minikube (Rollback)'
     condition: and(succeeded(), ne('${{ parameters.semanticVersion }}', 'none'))

@@ -6,7 +6,9 @@ parameters:
 jobs:
   - job: DockerJob
     displayName: 'Docker Build, Scan & Push'
-    dependsOn: BuildJob
+    dependsOn:
+      - BuildJob
+      - TestJob
     variables:
       configVersion: $[ dependencies.BuildJob.outputs['readVersion.configVersion'] ]
     pool:
