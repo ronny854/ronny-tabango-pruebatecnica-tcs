@@ -10,9 +10,10 @@ steps:
   # Transferir directorio k8s/ al servidor minikube via SCP
   - script: |
       set -euo pipefail
-      echo "Imagen: $imageFullNameTag"
+      echo "Imagen: $(imageFullNameTag)"
+      echo "Imagen2: ${imageFullNameTag}"
       echo "Inyectando imagen en deployment.yaml"
-      sed -i "s|IMAGE_PLACEHOLDER|$imageFullNameTag|g" k8s/deployment.yaml
+      sed -i "s|IMAGE_PLACEHOLDER|$(imageFullNameTag)|g" k8s/deployment.yaml
       echo "Transfiriendo manifiestos k8s al servidor minikube..."
       ssh minikube-server "rm -rf /tmp/k8s-manifests && mkdir -p /tmp/k8s-manifests"
       scp -r $(Build.SourcesDirectory)/k8s/* minikube-server:/tmp/k8s-manifests/
@@ -32,8 +33,8 @@ steps:
   - script: |
       set -euo pipefail
       echo "Ejecutando deploy normal..."
-      echo "Imagen: $imageFullNameTag"
-      ssh minikube-server "/tmp/deploy.sh '$imageFullNameTag'"
+      echo "Imagen: $(imageFullNameTag)"
+      ssh minikube-server "/tmp/deploy.sh '$(imageFullNameTag)'"
     displayName: 'Ejecutar deploy en minikube (normal)'
     condition: and(succeeded(), eq('${{ parameters.semanticVersion }}', 'none'))
 

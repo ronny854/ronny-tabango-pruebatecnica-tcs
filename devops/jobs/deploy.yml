@@ -12,7 +12,8 @@ jobs:
     pool: minikube-agents
     ${{ if eq(parameters.semanticVersion, 'none') }}:
       variables:
-        imageFullNameTag: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullNameTag'] ]
+        - name: imageFullNameTag
+          value: $[ stageDependencies.CI.TestJob.outputs['PushDockerHub.imageFullNameTag'] ]
     steps:
       - checkout: self
 
