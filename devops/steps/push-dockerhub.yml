@@ -24,7 +24,7 @@ steps:
 
   - script: |
       echo "=== Docker Logout & Cleanup ==="
-      docker logout ${{ parameters.containerRegistry }} || true
+      docker logout $(containerRegistry) || true
       docker image prune -f || true
       echo "✅ Limpieza completada"
     displayName: 'Docker Cleanup'
