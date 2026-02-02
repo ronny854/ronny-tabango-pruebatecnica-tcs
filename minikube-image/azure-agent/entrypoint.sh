@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Asegurar permisos del directorio de trabajo (puede ser un volumen montado como root)
+sudo chown -R azureagent:azureagent /azp/agent/_work 2>/dev/null || true
+
 # Variables de entorno requeridas
 AZP_URL=${AZP_URL:-""}
 AZP_TOKEN=${AZP_TOKEN:-""}

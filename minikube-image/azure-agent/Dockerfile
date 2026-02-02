@@ -38,7 +38,8 @@ RUN mkdir -p /azp/agent && \
 
 # Descargar Azure DevOps Agent
 WORKDIR /azp/agent
-RUN curl -LsS https://download.agent.dev.azure.com/agent/${AGENT_VERSION}/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz | tar -xz
+RUN curl -LsS https://download.agent.dev.azure.com/agent/${AGENT_VERSION}/vsts-agent-linux-x64-${AGENT_VERSION}.tar.gz | tar -xz && \
+    chown -R azureagent:azureagent /azp
 
 # Crear directorios .ssh y .kube para el usuario
 RUN mkdir -p /home/azureagent/.ssh && \
